@@ -7,7 +7,15 @@ function escapeHtml(unsafe) {
    .replace(/'/g, "&#039;");
  }
 
-const socket = new WebSocket('ws://localhost:8765');
+ function getWebSocketServer() {
+  if (window.location.host === "localhost") {
+    return "ws://localhost:8765";
+  } else {
+    return "wss://token-game.herokuapp.com/";
+  }
+}
+
+const socket = new WebSocket(getWebSocketServer());
 
 socket.onopen = (event) => {
   console.log('WebSocket connection opened');
