@@ -1,9 +1,12 @@
 
+import os
+import signal
 import asyncio
 from websockets.asyncio.server import serve, broadcast
 from collections import defaultdict, deque
 import json
 from random import randint
+
 
 DECIDING_PERIOD = 5 # seconds
 
@@ -33,7 +36,6 @@ async def handler(websocket):
 
 async def select_token():
     while True:
-        print('select_token')
         if len(scores) > 0:
             items = list(scores.items())
             print(repr(items))
@@ -60,9 +62,16 @@ async def select_token():
 
 async def main():
     task = asyncio.create_task(select_token())
-    async with serve(handler, "localhost", 8765):
-        print("server listening on localhost:8756")
-        await asyncio.get_running_loop().create_future()  # Run forever
+
+    # Set the stop condition when receiving SIGTERM.
+    loop = asyncio.get_running_loop()
+    stop = loop.create_future()
+    loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
+
+    port = int(os.environ.get("PORT", "8765"))
+    print("listening on port %i", port)
+    async with serve(handler, "", port):
+        await stop
 
 if __name__ == "__main__":
     asyncio.run(main())
