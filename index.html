@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+<head>
+<title>Tokens</title>
+<meta name="description" content="type the next word">
+<meta name="keywords" content="tokens game">
+<script type="text/javascript" src="clientTokensGame.js"></script>
+</head>
+<body>
+
+<p>Type the next word. Press space or enter to submit it. Every few seconds the server selects the highest scoring word from all submissions. If focus on the editable field is lost, press tab.</p>
+
+<p id="gameText" style="margin: 40px; padding: 10px; border-style: solid;">
+	<span id="existingText"></span>
+	<span id="userWord" contenteditable="true"></span>
+</p>
+
+<div>
+	Online Users: <b><span id="onlineUsers">0</span></b>
+</div>
+
+</body>
+</html>
