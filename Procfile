@@ -1,1 +1,1 @@
-web: python3 serverTokenGame.py
+web: python3 serverTokensGame.py
