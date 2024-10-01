@@ -69,7 +69,7 @@ async def main():
     loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
 
     port = int(os.environ.get("PORT", "8765"))
-    print("listening on port %i", port)
+    print("listening on port ", port)
     async with serve(handler, "", port):
         await stop
 

@@ -11,7 +11,7 @@ function escapeHtml(unsafe) {
   if (window.location.host === "localhost") {
     return "ws://localhost:8765";
   } else {
-    return "wss://token-game.herokuapp.com/";
+    return "wss://token-game-aa782c60035f.herokuapp.com";
   }
 }
 
