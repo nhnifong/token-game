@@ -45,7 +45,6 @@ socket.onmessage = (event) => {
 
 window.onload = function() {
   const uw = document.getElementById('userWord')
-  uw.focus()
   uw.addEventListener('keydown', (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
       socket.send(JSON.stringify({'s':uw.innerText}));
@@ -53,5 +52,9 @@ window.onload = function() {
       uw.style.backgroundColor = '#DDDD99';
       event.preventDefault();
     }
+  });
+
+  document.getElementById('gameText').addEventListener('click', (event) => {
+    uw.focus();
   });
 }

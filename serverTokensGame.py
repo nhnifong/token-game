@@ -6,14 +6,24 @@ from websockets.asyncio.server import serve, broadcast
 from collections import defaultdict, deque
 import json
 from random import randint
-
-
-DECIDING_PERIOD = 5 # seconds
+from math import sqrt
+import re
 
 connected = set()
 scores = defaultdict(lambda: 0)
-history = deque(['If','only','it','were','all','so','simple!','If','only'])
+try:
+    history = open('content_log.txt', 'r').read()
+except:
+    history = deque(['If','only','it','were','all','so','simple!','If','only'])
 outfile = open('content_log.txt', 'a')
+# no urls, no underscores, no whitespace
+disallowed = re.compile(r"(http)|(://)|(\w\.\w)|(\s)|(_)")
+
+def sanitize(s):
+    if disallowed.search(s):
+        return ''
+    else:
+        return s[:20] # max token length
 
 async def handler(websocket):
     connected.add(websocket)
@@ -26,10 +36,13 @@ async def handler(websocket):
         }
         await websocket.send(json.dumps(event));
         while True:
+            # this loopruns every time a user sends a word
             message = await websocket.recv()
             print("received %r" % message)
             data = json.loads(message)
-            scores[data['s']] += 1
+            token = sanitize(data['s'])
+            if token:
+                scores[token] += 1
     finally:
         connected.remove(websocket)
         print("lost connection (%i clients connected)" % len(connected))
@@ -58,7 +71,8 @@ async def select_token():
             if len(history) > 500:
                 history.popleft()
             outfile.write(token+' ')
-        await asyncio.sleep(DECIDING_PERIOD)
+        sleep_seconds = sqrt(len(connected))*3
+        await asyncio.sleep(sleep_seconds)
 
 async def main():
     task = asyncio.create_task(select_token())
