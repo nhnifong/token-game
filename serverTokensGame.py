@@ -3,13 +3,14 @@ import os
 import signal
 import asyncio
 from websockets.asyncio.server import serve, broadcast
-from collections import defaultdict, deque
+from collections import defaultdict
 import json
 from random import randint
 from math import sqrt
 import re
 import redis
 from datetime import datetime
+from urllib.parse import urlparse
 
 # redis key changes every few days, clearing the history
 def current_key():
@@ -26,7 +27,10 @@ scores = defaultdict(lambda: 0)
 # no urls, no underscores, no whitespace
 disallowed = re.compile(r'(http)|(://)|(\w\.\w)|(\s)|(_)')
 
-r = redis.from_url(os.environ.get('REDIS_URL', 'redis://localhost:6379'), decode_responses=True)
+
+# r = redis.from_url(os.environ.get('REDIS_URL', 'redis://localhost:6379'), decode_responses=True)
+url = urlparse(os.environ.get('REDIS_URL', 'redis://localhost:6379'))
+r = redis.Redis(host=url.hostname, port=url.port, password=url.password, ssl=(url.scheme == "rediss"), ssl_cert_reqs=None)
 if not r.exists(current_key()):
     r.set(current_key(), 'If only')
 
