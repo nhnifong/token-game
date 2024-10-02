@@ -8,11 +8,11 @@ function escapeHtml(unsafe) {
  }
 
  function getWebSocketServer() {
-  if (window.location.host === "localhost") {
+  // if (window.location.host === "localhost") {
     return "ws://localhost:8765";
-  } else {
-    return "wss://token-game-aa782c60035f.herokuapp.com";
-  }
+  // } else {
+  //   return "wss://token-game-aa782c60035f.herokuapp.com";
+  // }
 }
 
 const socket = new WebSocket(getWebSocketServer());
@@ -26,7 +26,7 @@ socket.onmessage = (event) => {
   // Handle the received data
   console.log('Data:', data);
   if ('h' in data) { // history
-    document.getElementById('existingText').innerHTML = escapeHtml(data.h) + "&nbsp;";
+    document.getElementById('existingText').innerHTML = escapeHtml(data.h);
   }
 
   if ('u' in data) { // user count
@@ -34,7 +34,7 @@ socket.onmessage = (event) => {
   }
 
   if ('s' in data) { // new token
-    document.getElementById('existingText').innerHTML += (escapeHtml(data.s) + "&nbsp;");
+    document.getElementById('existingText').innerHTML += (' ' + escapeHtml(data.s));
     const uw = document.getElementById('userWord')
     uw.innerHTML = '';
     uw.contentEditable = true;

@@ -8,16 +8,12 @@ import json
 from random import randint
 from math import sqrt
 import re
+import redis
+from datetime import datetime
 
-connected = set()
-scores = defaultdict(lambda: 0)
-try:
-    history = open('content_log.txt', 'r').read()
-except:
-    history = deque(['If','only','it','were','all','so','simple!','If','only'])
-outfile = open('content_log.txt', 'a')
-# no urls, no underscores, no whitespace
-disallowed = re.compile(r"(http)|(://)|(\w\.\w)|(\s)|(_)")
+# redis key changes every few days, clearing the history
+def current_key():
+    return (datetime.now() - datetime(year=1999, month=1, day=1)).days//5
 
 def sanitize(s):
     if disallowed.search(s):
@@ -25,27 +21,36 @@ def sanitize(s):
     else:
         return s[:20] # max token length
 
+connected = set()
+scores = defaultdict(lambda: 0)
+# no urls, no underscores, no whitespace
+disallowed = re.compile(r'(http)|(://)|(\w\.\w)|(\s)|(_)')
+
+r = redis.from_url(os.environ.get('REDIS_URL', 'redis://localhost:6379'), decode_responses=True)
+if not r.exists(current_key()):
+    r.set(current_key(), 'If only')
+
 async def handler(websocket):
     connected.add(websocket)
-    print("new connection (%i clients connected)" % len(connected))
+    print('new connection (%i clients connected)' % len(connected))
     try:
         # send new user recent history and setup data
         event = {
             'u': len(connected), # connected users
-            'h': ' '.join(history), # recent text
+            'h': r.get(current_key()), # recent text
         }
         await websocket.send(json.dumps(event));
         while True:
             # this loopruns every time a user sends a word
             message = await websocket.recv()
-            print("received %r" % message)
+            print('received %r' % message)
             data = json.loads(message)
             token = sanitize(data['s'])
             if token:
                 scores[token] += 1
     finally:
         connected.remove(websocket)
-        print("lost connection (%i clients connected)" % len(connected))
+        print('lost connection (%i clients connected)' % len(connected))
 
 async def select_token():
     while True:
@@ -67,10 +72,7 @@ async def select_token():
             }
             print('broadcast token "%s"' % token)
             broadcast(connected, json.dumps(event))
-            history.append(token)
-            if len(history) > 500:
-                history.popleft()
-            outfile.write(token+' ')
+            r.append(current_key(), ' '+token)
         sleep_seconds = sqrt(len(connected))*3
         await asyncio.sleep(sleep_seconds)
 
