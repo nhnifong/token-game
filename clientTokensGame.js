@@ -8,11 +8,11 @@ function escapeHtml(unsafe) {
  }
 
  function getWebSocketServer() {
-  // if (window.location.host === "localhost") {
+  if (window.location.host === "localhost") {
     return "ws://localhost:8765";
-  // } else {
-  //   return "wss://token-game-aa782c60035f.herokuapp.com";
-  // }
+  } else {
+    return "wss://token-game-aa782c60035f.herokuapp.com";
+  }
 }
 
 const socket = new WebSocket(getWebSocketServer());
